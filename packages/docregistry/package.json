@@ -46,7 +46,6 @@
     "@jupyterlab/codeeditor": "^4.0.0-alpha.16",
     "@jupyterlab/codemirror": "^4.0.0-alpha.16",
     "@jupyterlab/coreutils": "^6.0.0-alpha.16",
-    "@jupyterlab/docprovider": "^4.0.0-alpha.16",
     "@jupyterlab/observables": "^5.0.0-alpha.16",
     "@jupyterlab/rendermime": "^4.0.0-alpha.16",
     "@jupyterlab/rendermime-interfaces": "^3.8.0-alpha.16",
