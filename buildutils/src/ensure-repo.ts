@@ -193,6 +193,7 @@ const SKIP_CSS: Dict<string[]> = {
     '@jupyterlab/extensionmanager-extension',
     '@jupyterlab/filebrowser-extension',
     '@jupyterlab/fileeditor-extension',
+    '@jupyterlab/fsdrive-extension',
     '@jupyterlab/inspector',
     '@jupyterlab/help-extension',
     '@jupyterlab/htmlviewer',

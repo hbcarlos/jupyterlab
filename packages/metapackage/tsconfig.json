@@ -115,6 +115,9 @@
       "path": "../fileeditor-extension"
     },
     {
+      "path": "../fsdrive-extension"
+    },
+    {
       "path": "../help-extension"
     },
     {

@@ -16,6 +16,7 @@ import '@jupyterlab/documentsearch-extension/style/index.js';
 import '@jupyterlab/extensionmanager-extension/style/index.js';
 import '@jupyterlab/filebrowser-extension/style/index.js';
 import '@jupyterlab/fileeditor-extension/style/index.js';
+import '@jupyterlab/fsdrive-extension/style/index.js';
 import '@jupyterlab/help-extension/style/index.js';
 import '@jupyterlab/htmlviewer-extension/style/index.js';
 import '@jupyterlab/hub-extension/style/index.js';
