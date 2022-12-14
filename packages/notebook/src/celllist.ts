@@ -27,7 +27,10 @@ export class CellList {
    * Construct the cell list.
    */
   constructor(protected model: ISharedNotebook) {
-    this._insertCells(0, this.model.cells);
+    this.model.cells.forEach(cell => {
+      const model = this._createCellModel(cell);
+      this._cellMap.set(cell, model);
+    });
 
     this.model.changed.connect(this._onSharedModelChanged, this);
   }
@@ -93,70 +96,120 @@ export class CellList {
     return this._cellMap.get(this.model.cells[index])!;
   }
 
-  private _insertCells(index: number, cells: Array<ISharedCell>) {
-    cells.forEach(sharedModel => {
-      let cellModel: CellModel;
-      switch (sharedModel.cell_type) {
-        case 'code': {
-          cellModel = new CodeCellModel({
-            sharedModel: sharedModel as ISharedCodeCell
-          });
-          break;
-        }
-        case 'markdown': {
-          cellModel = new MarkdownCellModel({
-            sharedModel: sharedModel as ISharedMarkdownCell
-          });
-          break;
-        }
-        default: {
-          cellModel = new RawCellModel({
-            sharedModel: sharedModel as ISharedRawCell
-          });
-        }
+  private _createCellModel(sharedModel: ISharedCell): CellModel {
+    let cellModel: CellModel;
+    switch (sharedModel.cell_type) {
+      case 'code': {
+        cellModel = new CodeCellModel({
+          sharedModel: sharedModel as ISharedCodeCell
+        });
+        break;
       }
-
-      this._cellMap.set(sharedModel, cellModel);
-      sharedModel.disposed.connect(() => {
-        cellModel.dispose();
-        this._cellMap.delete(sharedModel);
-      });
-    });
-
-    return this.length;
+      case 'markdown': {
+        cellModel = new MarkdownCellModel({
+          sharedModel: sharedModel as ISharedMarkdownCell
+        });
+        break;
+      }
+      default: {
+        cellModel = new RawCellModel({
+          sharedModel: sharedModel as ISharedRawCell
+        });
+      }
+    }
+    return cellModel;
   }
 
   private _onSharedModelChanged(self: ISharedNotebook, change: NotebookChange) {
-    let currpos = 0;
-    // We differ emitting the list changes to ensure cell model for all current shared cell have been created.
-    const events = new Array<IObservableList.IChangedArgs<ICellModel>>();
-    change.cellsChange?.forEach(delta => {
-      if (delta.insert != null) {
-        this._insertCells(currpos, delta.insert);
-        events.push({
-          type: 'add',
-          newIndex: currpos,
-          newValues: delta.insert.map(c => this._cellMap.get(c)!),
-          oldIndex: -2,
-          oldValues: []
-        });
+    // This doesn't support transactions where there is a move together with
+    // other operation.
+    // A move operation has to be in its own transaction.
+    console.debug("CellList._onSharedModelChanged", change.cellsChange);
 
-        currpos += delta.insert.length;
-      } else if (delta.delete != null) {
-        events.push({
-          type: 'remove',
-          newIndex: -1,
-          newValues: [],
-          oldIndex: currpos,
-          // Cells have been disposed, so we don't know which one are gone.
-          oldValues: new Array(delta.delete).fill(undefined)
-        });
-      } else if (delta.retain != null) {
-        currpos += delta.retain;
-      }
-    });
+    if (change.cellsChange) {
+      const added = change.cellsChange?.added;
+      const deleted = change.cellsChange?.deleted;
+      added.forEach(item => {
+        if (!this._cellMap.has(item)) {
+          const cellModel = this._createCellModel(item);
+          this._cellMap.set(item, cellModel);
+        }
+      });
+      deleted.forEach(item => {
+        const model = this._cellMap.get(item);
+        if (model) {
+          model.dispose();
+          this._cellMap.delete(item);
+        }
+      });
 
-    events.forEach(msg => this._changed.emit(msg));
+      let currpos = 0;
+      // We differ emitting the list changes to ensure cell model for all current shared cell have been created.
+      const events = new Array<IObservableList.IChangedArgs<ICellModel>>();
+      change.cellsChange.delta.forEach(d => {
+        if (d.insert != null && d.insert.length != added.size) {
+          // MOVE
+          const deltas = change.cellsChange!.delta;
+          let oldIndex = 0;
+          for (let i=0; i<deltas.length; i++) {
+            const delta = deltas[i];
+            if (delta.insert) {
+              oldIndex += delta.insert.length;
+            } else if (delta.retain){
+              oldIndex += delta.retain;
+            } else {
+              break;
+            }
+          }
+          console.debug("MOVE: insert", currpos, oldIndex);
+
+          events.push({
+            type: 'move',
+            newIndex: currpos,
+            newValues: d.insert.map(c => this._cellMap.get(c)!),
+            oldIndex,
+            oldValues: d.insert.map(c => this._cellMap.get(c)!)
+          });
+
+        } else if (d.delete != null && d.delete != deleted.size) {
+          // MOVE
+          // Handled in insert
+          console.debug("MOVE: delete");
+
+        } else if (d.insert != null) {
+          events.push({
+            type: 'add',
+            newIndex: currpos,
+            newValues: d.insert.map(c => this._cellMap.get(c)!),
+            oldIndex: -2,
+            oldValues: []
+          });
+
+          currpos += d.insert.length;
+        } else if (d.delete != null) {
+          events.push({
+            type: 'remove',
+            newIndex: -1,
+            newValues: [],
+            oldIndex: currpos,
+            // Cells have been disposed, so we don't know which one are gone.
+            oldValues: new Array(d.delete).fill(undefined)
+          });
+        } else if (d.retain != null) {
+          currpos += d.retain;
+        }
+      });
+
+      console.debug("SharedModels:");
+      this.model.cells.forEach(cell => {
+        console.debug(cell);
+        console.debug(this._cellMap);
+        debugger;
+        const cellModel = this._cellMap.get(cell)!;
+        console.debug("Disposed:", cellModel.isDisposed, cellModel.id);
+      });
+      events.forEach(msg => this._changed.emit(msg));
+    }
   }
 
   private _cellMap = new WeakMap<ISharedCell, ICellModel>();

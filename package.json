@@ -101,6 +101,7 @@
     "watch:packages": "python scripts/watch_packages.py"
   },
   "resolutions": {
+    "@jupyter-notebook/ydoc": "file:../jupyter_ydoc/javascript",
     "@lumino/coreutils": "^2.0.0-alpha.6",
     "@lumino/disposable": "^2.0.0-alpha.6",
     "@lumino/signaling": "^2.0.0-alpha.6",
@@ -108,6 +109,7 @@
     "react": "^17.0.1"
   },
   "dependencies": {
+    "@jupyter-notebook/ydoc": "file:../jupyter_ydoc/javascript",
     "@typescript-eslint/eslint-plugin": "~5.28.0",
     "@typescript-eslint/parser": "~5.28.0",
     "eslint": "~8.17.0",

@@ -16,7 +16,7 @@ export class NotebookModelFactory
    */
   constructor(options: NotebookModelFactory.IOptions) {
     this._disableDocumentWideUndoRedo =
-      options.disableDocumentWideUndoRedo || false;
+      options.disableDocumentWideUndoRedo || true;
   }
 
   /**

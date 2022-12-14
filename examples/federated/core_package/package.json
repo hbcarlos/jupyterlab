@@ -8,6 +8,7 @@
     "watch": "npm run clean && webpack --watch"
   },
   "resolutions": {
+    "@jupyter-notebook/ydoc": "~0.2.2",
     "@jupyterlab/application": "~4.0.0-alpha.15",
     "@jupyterlab/application-extension": "~4.0.0-alpha.15",
     "@jupyterlab/apputils": "^4.0.0-alpha.15",
@@ -95,7 +96,7 @@
     "@lumino/widgets": "^2.0.0-alpha.6",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
-    "yjs": "^13.5.40"
+    "yjs": "^14.0.0-0"
   },
   "dependencies": {
     "@jupyterlab/application": "^4.0.0-alpha.15",
@@ -164,6 +165,7 @@
     "themeDir": "../data",
     "schemaDir": "../data",
     "singletonPackages": [
+      "@jupyter-notebook/ydoc",
       "@jupyterlab/application",
       "@jupyterlab/apputils",
       "@jupyterlab/attachments",

@@ -101,9 +101,7 @@ export class NotebookModel implements INotebookModel {
    * Construct a new notebook model.
    */
   constructor(options: NotebookModel.IOptions = {}) {
-    const sharedModel = (this.sharedModel = new YNotebook({
-      disableDocumentWideUndoRedo: options.disableDocumentWideUndoRedo ?? false
-    }));
+    const sharedModel = this.sharedModel = new YNotebook();
     this._cells = new CellList(this.sharedModel);
     this._trans = (options.translator || nullTranslator).load('jupyterlab');
     this._deletedCells = [];
@@ -451,6 +449,11 @@ close the notebook without saving it.`,
    * Trigger a content changed signal.
    */
   protected triggerContentChange(): void {
+    console.debug("NotebookModel.triggerContentChange:");
+    this.sharedModel.cells.forEach((cell, i) => {
+      const model = this.cells.get(i);
+      console.debug("Disposed:", model.isDisposed, model.id, model.type, model.trusted);
+    });
     this._contentChanged.emit(void 0);
     this.dirty = true;
   }
